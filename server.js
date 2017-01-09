@@ -1,0 +1,28 @@
+var express = require('express');
+var bodyparser = require('body-parser');
+var app = express();
+var PORT = process.env.PORT || 3000;
+var morgan = require('morgan');
+var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
+
+
+// use morgan to log requests to the console
+app.use(morgan('dev'));
+app.use(bodyparser.urlencoded({extended: true}));
+app.use(bodyparser.json());
+var db = require('./db');
+var routes = require('./routes');
+
+db.init();
+routes.configure(app);
+var server = app.listen(PORT, function() {
+  console.log('Server listening on port ' + PORT);
+});
+
+
+
+
+
+
+
+// http://www.yogasaikrishna.com/simple-restful-api-using-nodejs-express-and-mysql/
