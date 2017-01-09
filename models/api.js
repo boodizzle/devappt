@@ -8,30 +8,30 @@ function Appts() {
     db.acquire(function (err, con) {
       con.query('select orgID,userName,password from users where userName = ?', [req.username], function (err, result) {
         con.release();
-      var hashPSW = result[0].password;
-      var userN = result[0].userName;
-      var orgID = result[0].orgID;
-			if (err) {
-				res.status(500).send('Error: ' + err.code);
-				console.log(err.code);
-			}
-      console.log(result);
-      // compare Hash Salt
-            bcrypt.compare(req.password, hashPSW, function (err, authres) {
-				if (authres) {
-					console.log('Authenticated!');
+        var hashPSW = result[0].password;
+        var userN = result[0].userName;
+        var orgID = result[0].orgID;
+        if (err) {
+          res.status(500).send('Error: ' + err.code);
+          console.log(err.code);
+        }
+        console.log(result);
+        // compare Hash Salt
+        bcrypt.compare(req.password, hashPSW, function (err, authres) {
+          if (authres) {
+            console.log('Authenticated!');
 
-          var jwtoken = jwt.sign({org_id: orgID, user_name: userN}, hashPSW, {
-					expiresIn: 86400 // expires in 24 hours
-				});
- 					res.status(200).json({"message": "Authenticated! Enjoy your token!", "token": jwtoken})
+            var jwtoken = jwt.sign({ org_id: orgID, user_name: userN }, hashPSW, {
+              expiresIn: 86400 // expires in 24 hours
+            });
+            res.status(200).json({ "message": "Authenticated! Enjoy your token!", "token": jwtoken })
 
-          
-				} else {
-					console.log('no bueno!');
-					res.status(500).send('invalid username or password!');
-				}
-			});
+
+          } else {
+            console.log('no bueno!');
+            res.status(500).send('invalid username or password!');
+          }
+        });
       });
     });
 
