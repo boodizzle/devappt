@@ -8,6 +8,7 @@ module.exports = {
     });
 
 
+
     app.get('/auth/appt/', function (req, res) {
       api.getAppts(req.query, res);
     });
@@ -20,7 +21,7 @@ module.exports = {
       api.updateEmail(req.body, res);
     });
 
-    app.delete('/auth/appt/', function (req, res) {
+    app.delete('/auth/user/', function (req, res) {
       api.deleteUser(req.query, res);
     });
   }
