@@ -1,31 +1,32 @@
 var db = require('../db');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
+var serverConfig = require('../config/config.js');
 
 function Appts() {
 
   this.authenticate = function (req, res) {
     db.acquire(function (err, con) {
-      con.query('select orgID,userName,password from users where userName = ?', [req.username], function (err, result) {
+      con.query('select orgID,userid,userName,password from users where userName = ?', [req.username], function (err, result) {
         con.release();
         var hashPSW = result[0].password;
         var userN = result[0].userName;
         var orgID = result[0].orgID;
+        var userID = result[0].userid
         if (err) {
           res.status(500).send('Error: ' + err.code);
           console.log(err.code);
         }
-        console.log(result);
         // compare Hash Salt
         bcrypt.compare(req.password, hashPSW, function (err, authres) {
           if (authres) {
             console.log('Authenticated!');
 
-            var jwtoken = jwt.sign({ org_id: orgID, user_name: userN }, hashPSW, {
+            var jwtoken = jwt.sign({ org_id: orgID, user_name: userN, user_id: userID }, serverConfig.jwtSecret, {
               expiresIn: 86400 // expires in 24 hours
             });
             res.status(200).json({ "message": "Authenticated! Enjoy your token!", "token": jwtoken })
-
+            console.log(serverConfig.jwtSecret);
 
           } else {
             console.log('no bueno!');
@@ -93,9 +94,9 @@ function Appts() {
     });
   };
 
-  this.deleteUser = function (id, res) {
+  this.deleteUser = function (req, res) {
     db.acquire(function (err, con) {
-      con.query('delete from users where id = ?', [id], function (err, result) {
+      con.query('delete from users where orgID = ? AND userid = ?', [req.orgid,req.userid], function (err, result) {
         con.release();
         if (err) {
           res.send({ status: 1, message: err.code });

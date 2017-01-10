@@ -1,15 +1,15 @@
 var mysql = require('mysql');
- 
+var serverConfig = require('./config/config.js')
 function db() {
   this.pool = null;
  
   this.init = function() {
     this.pool = mysql.createPool({
       connectionLimit: 10,
-      host: 'localhost',
-      user: 'root',
-      password: 'password',
-      database: 'apptest'
+      host: serverConfig.dbHost,
+      user: serverConfig.dbUserName,
+      password: serverConfig.dbPassword,
+      database: serverConfig.dbName
     });
   };
  
