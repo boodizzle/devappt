@@ -7,8 +7,6 @@ module.exports = {
       api.authenticate(req.body, res);
     });
 
-
-
     app.get('/auth/appt/', function (req, res) {
       api.getAppts(req.query, res);
     });

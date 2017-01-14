@@ -2,6 +2,7 @@ var db = require('../db');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
 var serverConfig = require('../config/config.js');
+var jwtSecret = serverConfig.jwtSecret;
 
 function Appts() {
 
@@ -40,17 +41,28 @@ function Appts() {
 
 
   this.getAppts = function (qParams, res) {
-    if (qParams.hasOwnProperty('provid') && qParams.hasOwnProperty('orgid') && qParams.provid.length > 0 && qParams.orgid.length > 0 && isFinite(qParams.provid) && isFinite(qParams.orgid)) {
-      db.acquire(function (err, con) {
-        con.query('select * from appts where provID = ? and orgID = ? order by date, beginTime', [qParams.provid, qParams.orgid], function (err, result) {
-          con.release();
-          if (err) res.status(500).send(err.code);
-          res.status(200).json(result);
-        });
-      });
-    } else {
-      res.status(500).send('invalid entry!');
-    }
+    var decoded = jwt.verify(qParams.userToken, jwtSecret, function (err, decoded) {
+      if (err) {
+        res.status(500).json({ error: err.name, desc: err.message });
+        console.log({ error: err.name, desc: err.message });
+        if (!decoded) {
+          res.status(500).json({ error: err.name, desc: err.message });
+        }
+        if (decoded) {
+          if (qParams.hasOwnProperty('provid') && qParams.hasOwnProperty('orgid') && qParams.provid.length > 0 && qParams.orgid.length > 0 && isFinite(qParams.provid) && isFinite(qParams.orgid)) {
+            db.acquire(function (err, con) {
+              con.query('select * from appts where provID = ? and orgID = ? order by date, beginTime', [qParams.provid, qParams.orgid], function (err, result) {
+                con.release();
+                if (err) res.status(500).send(err.code);
+                res.status(200).json(result);
+              });
+            });
+          } else {
+            res.status(500).send('invalid entry!');
+          }
+        }
+      }
+    });
   };
 
 
@@ -79,24 +91,37 @@ function Appts() {
         });
       });
     });
-  }
+  };
 
   this.updateEmail = function (qParam, res) {
-    db.acquire(function (err, con) {
-      con.query('update users set email = ? where userid = ?', [qParam.newEmail, qParam.userid], function (err, result) {
-        con.release();
-        if (err) {
-          res.send({ status: 1, message: err.code });
-        } else {
-          res.send({ status: 0, message: 'Email updated!' });
+    jwt.verify(qParam.userToken, jwtSecret, function (err, decoded) {
+      if (err) {
+        res.status(500).json({ error: err.name, desc: err.message });
+        console.log({ error: err.name, desc: err.message });
+        if (!decoded) {
+          res.status(500).json({ error: err.name, desc: err.message });
         }
-      });
+        if (decoded) {
+          // continue onto query
+          db.acquire(function (err, con) {
+            con.query('update users set email = ? where userid = ?', [qParam.newEmail, qParam.userid], function (err, result) {
+              con.release();
+              if (err) {
+                res.send({ status: 1, message: err.code });
+              } else {
+                res.send({ status: 0, message: 'Email updated!' });
+              }
+            });
+          });
+          //  end the next
+        }
+      }
     });
   };
 
   this.deleteUser = function (req, res) {
     db.acquire(function (err, con) {
-      con.query('delete from users where orgID = ? AND userid = ?', [req.orgid,req.userid], function (err, result) {
+      con.query('delete from users where orgID = ? AND userid = ?', [req.orgid, req.userid], function (err, result) {
         con.release();
         if (err) {
           res.send({ status: 1, message: err.code });
