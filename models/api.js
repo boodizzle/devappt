@@ -44,8 +44,8 @@ function Appts() {
       if (err) {
         res.status(500).json({ error: err.name, desc: err.message });
         console.log({ error: err.name, desc: err.message });
-        if (!decoded) {
-          res.status(500).json({ error: err.name, desc: err.message });
+        if (!err && !decoded) {
+          res.redirect('/authenticate');
         }
         if (decoded) {
           if (qParams.hasOwnProperty('provid') && qParams.hasOwnProperty('orgid') && qParams.provid.length > 0 && qParams.orgid.length > 0 && isFinite(qParams.provid) && isFinite(qParams.orgid)) {
@@ -57,7 +57,7 @@ function Appts() {
               });
             });
           } else {
-            res.status(500).send('invalid entry!');
+            res.status(500).send({error: 'invalid entry!'});
           }
         }
       }
@@ -98,7 +98,7 @@ function Appts() {
         res.status(500).json({ error: err.name, desc: err.message });
         console.log({ error: err.name, desc: err.message });
         if (!decoded) {
-          res.status(500).json({ error: err.name, desc: err.message });
+          res.redirect('/authenticate');
         }
         if (decoded) {
           // continue onto query
