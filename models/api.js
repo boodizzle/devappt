@@ -44,7 +44,7 @@ function Appts() {
       if (err) {
         res.status(500).json({ error: err.name, desc: err.message });
         console.log({ error: err.name, desc: err.message });
-        if (!err && !decoded) {
+      } else if (!decoded) {
           res.redirect('/authenticate');
         }
         if (decoded) {
@@ -61,7 +61,7 @@ function Appts() {
           }
         }
       }
-    });
+    );
   };
 
 
