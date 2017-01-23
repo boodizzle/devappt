@@ -8,11 +8,15 @@ module.exports = {
     });
 
     app.get('/auth/resource', function (req, res) {
-      api.getRes(req.query, res);
+      api.getResource(req.query, res);
     });
 
     app.get('/auth/resource/appts', function (req, res) {
       api.getAppts(req.query, res);
+    });
+
+    app.get('/auth/user', function (req, res) {
+      api.getUsers(req.query, res);
     });
 
     app.put('/auth/user/email', function (req, res) {
