@@ -48,9 +48,9 @@ function Appts() {
         res.redirect('/auth');
       }
       if (decoded) {
-        if (req.hasOwnProperty('provid') && req.provid.length > 0 && isFinite(req.provid)) {
+        if (req.hasOwnProperty('res_id') && req.res_id.length > 0 && isFinite(req.res_id)) {
           db.acquire(function (err, con) {
-            con.query('select * from appts where provID = ? and orgID = ? order by date, beginTime', [req.provid, decoded.org_id], function (err, result) {
+            con.query('select * from appts where resource_id = (select emrID from resources where resID = ? and orgID = ? and active = 1) order by appt_date, begintime', [req.res_id, decoded.org_id], function (err, result) {
               con.release();
               if (err) res.status(500).send(err.code);
               res.status(200).json(result);
@@ -144,7 +144,7 @@ function Appts() {
         }
         if (decoded) {
           db.acquire(function (err, con) {
-            con.query('update users set email = ? where userid = ?', [qParam.newEmail, decoded.user_id], function (err, result) {
+            con.query('update users set email = ?, modified = NOW() where userid = ?', [qParam.newEmail, decoded.user_id], function (err, result) {
               con.release();
               if (err) {
                 res.send({ status: 1, message: err.code });
