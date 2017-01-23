@@ -11,6 +11,10 @@ module.exports = {
       api.getAppts(req.query, res);
     });
 
+    app.get('/auth/resource/', function (req, res) {
+      api.getRes(req.query, res);
+    });
+
     app.post('/auth/newuser/', function (req, res) {
       api.createUser(req.body, res);
     });

@@ -12,9 +12,9 @@ app.use(bodyparser.json());
 var db = require('./db');
 var routes = require('./routes');
 
-setInterval(function () {
-  console.log('Interval (10 seconds!)');
-}, 10000);
+// setInterval(function () {
+//   console.log('Interval (10 seconds!)');
+// }, 10000);
 
 db.init();
 routes.configure(app);

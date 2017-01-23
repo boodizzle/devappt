@@ -64,6 +64,30 @@ function Appts() {
     );
   };
 
+  this.getRes = function (qParams, res) {
+    var decoded = jwt.verify(qParams.userToken, jwtSecret, function (err, decoded) {
+      if (err) {
+        res.status(500).json({ error: err.name, desc: err.message });
+        console.log({ error: err.name, desc: err.message });
+      } else if (!decoded) {
+          res.redirect('/authenticate');
+        }
+        if (decoded) {
+          if (qParams.hasOwnProperty('userToken') && qParams.userToken.length > 0) {
+            db.acquire(function (err, con) {
+              con.query('select * from resources where orgID = ? order by desc', [decoded.org_id], function (err, result) {
+                con.release();
+                if (err) res.status(500).send(err.code);
+                res.status(200).json(result);
+              });
+            });
+          } else {
+            res.status(500).send({error: 'invalid entry!'});
+          }
+        }
+      }
+    );
+  };
 
   this.createUser = function (req, res) {
     var orgID = req.orgid;
