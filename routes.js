@@ -23,7 +23,7 @@ module.exports = {
       api.updateEmail(req.body, res);
     });
 
-    app.post('/auth/user/new', function (req, res) {
+    app.post('/auth/user/create', function (req, res) {
       api.createUser(req.body, res);
     });
 
