@@ -73,7 +73,7 @@ function Appts() {
       }
       if (decoded) {
         db.acquire(function (err, con) {
-          con.query('select * from resources where orgID = ? order by resources desc', [decoded.org_id], function (err, result) {
+          con.query('select resID, orgID, description, firstName, lastName, active from resources where orgID = ? order by lastName', [decoded.org_id], function (err, result) {
             con.release();
             if (err) res.status(500).send(err.code);
             res.status(200).json(result);
@@ -95,7 +95,7 @@ function Appts() {
       }
       if (decoded) {
         db.acquire(function (err, con) {
-          con.query('select userID,orgID,userName,email,active from users where orgID = ? order by desc', [decoded.org_id], function (err, result) {
+          con.query('select userID,orgID,userName,email,active from users where orgID = ? order by userName', [decoded.org_id], function (err, result) {
             con.release();
             if (err) res.status(500).send(err.code);
             res.status(200).json(result);

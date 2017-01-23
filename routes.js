@@ -8,7 +8,7 @@ module.exports = {
     });
 
     app.get('/auth/resource', function (req, res) {
-      api.getResource(req.query, res);
+      api.getResources(req.query, res);
     });
 
     app.get('/auth/resource/appts', function (req, res) {
