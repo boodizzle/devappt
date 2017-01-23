@@ -23,4 +23,4 @@ module.exports = {
       api.deleteUser(req.query, res);
     });
   }
-};
+};  

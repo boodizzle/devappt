@@ -12,16 +12,12 @@ app.use(bodyparser.json());
 var db = require('./db');
 var routes = require('./routes');
 
+setInterval(function () {
+  console.log('Interval (10 seconds!)');
+}, 10000);
+
 db.init();
 routes.configure(app);
 var server = app.listen(PORT, function () {
   console.log('Server listening on port ' + PORT);
 });
-
-
-
-
-
-
-
-// http://www.yogasaikrishna.com/simple-restful-api-using-nodejs-express-and-mysql/
