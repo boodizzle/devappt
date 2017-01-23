@@ -12,6 +12,7 @@ app.use(bodyparser.json());
 var db = require('./db');
 var routes = require('./routes');
 
+// set interval placeholder
 // setInterval(function () {
 //   console.log('Interval (10 seconds!)');
 // }, 10000);

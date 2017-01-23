@@ -1,6 +1,6 @@
 var db = require('../db');
 var bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
+var jwt = require('jsonwebtoken');
 var serverConfig = require('../config/config.js');
 var jwtSecret = serverConfig.jwtSecret;
 
@@ -36,124 +36,130 @@ function Appts() {
         });
       });
     });
-  }
+  };
 
 
-  this.getAppts = function (qParams, res) {
-    var decoded = jwt.verify(qParams.userToken, jwtSecret, function (err, decoded) {
+  this.getAppts = function (req, res) {
+    var decoded = jwt.verify(req.userToken, jwtSecret, function (err, decoded) {
       if (err) {
         res.status(500).json({ error: err.name, desc: err.message });
         console.log({ error: err.name, desc: err.message });
       } else if (!decoded) {
-          res.redirect('/authenticate');
-        }
-        if (decoded) {
-          if (qParams.hasOwnProperty('provid') && qParams.hasOwnProperty('orgid') && qParams.provid.length > 0 && qParams.orgid.length > 0 && isFinite(qParams.provid) && isFinite(qParams.orgid)) {
-            db.acquire(function (err, con) {
-              con.query('select * from appts where provID = ? and orgID = ? order by date, beginTime', [qParams.provid, qParams.orgid], function (err, result) {
-                con.release();
-                if (err) res.status(500).send(err.code);
-                res.status(200).json(result);
-              });
-            });
-          } else {
-            res.status(500).send({error: 'invalid entry!'});
-          }
-        }
+        res.redirect('/auth');
       }
-    );
-  };
-
-  this.getRes = function (qParams, res) {
-    var decoded = jwt.verify(qParams.userToken, jwtSecret, function (err, decoded) {
-      if (err) {
-        res.status(500).json({ error: err.name, desc: err.message });
-        console.log({ error: err.name, desc: err.message });
-      } else if (!decoded) {
-          res.redirect('/authenticate');
-        }
-        if (decoded) {
-          if (qParams.hasOwnProperty('userToken') && qParams.userToken.length > 0) {
-            db.acquire(function (err, con) {
-              con.query('select * from resources where orgID = ? order by desc', [decoded.org_id], function (err, result) {
-                con.release();
-                if (err) res.status(500).send(err.code);
-                res.status(200).json(result);
-              });
+      if (decoded) {
+        if (req.hasOwnProperty('provid') && req.provid.length > 0 && isFinite(req.provid)) {
+          db.acquire(function (err, con) {
+            con.query('select * from appts where provID = ? and orgID = ? order by date, beginTime', [req.provid, decoded.org_id], function (err, result) {
+              con.release();
+              if (err) res.status(500).send(err.code);
+              res.status(200).json(result);
             });
-          } else {
-            res.status(500).send({error: 'invalid entry!'});
-          }
-        }
-      }
-    );
-  };
-
-  this.createUser = function (req, res) {
-    var orgID = req.orgid;
-    var uName = req.username;
-    var textPSW = req.password;
-    var fName = req.fname;
-    var lName = req.lname;
-    var email = req.email;
-    // Crypto Hash+Salt
-    bcrypt.genSalt(10, function (err, salt) {
-      bcrypt.hash(textPSW, salt, function (err, hash) {
-        // store hash in db
-        db.acquire(function (err, con) {
-          con.query('insert into users (orgID,userName,password,firstName,lastName,email) values(?,?,?,?,?,?)', [orgID, uName, hash, fName, lName, email], function (err, results) {
-            con.release();
-            if (err && err.code === 'ER_DUP_ENTRY') {
-              res.status(500).send(err.code);
-            } else if (err && err.code !== 'ER_DUP_ENTRY') {
-              res.status(500).send(err.code);
-            } else {
-              res.status(200).send('Success! user has been created!');
-            }
           });
-        });
-      });
+        } else {
+          res.status(500).send({ error: 'invalid entry!' });
+        }
+      }
     });
   };
 
-  this.updateEmail = function (qParam, res) {
-    jwt.verify(qParam.userToken, jwtSecret, function (err, decoded) {
+  this.getRes = function (req, res) {
+    var decoded = jwt.verify(req.userToken, jwtSecret, function (err, decoded) {
       if (err) {
         res.status(500).json({ error: err.name, desc: err.message });
         console.log({ error: err.name, desc: err.message });
-        if (!decoded) {
-          res.redirect('/authenticate');
-        }
-        if (decoded) {
-          // continue onto query
+      } else if (!decoded) {
+        res.redirect('/auth');
+      }
+      if (decoded) {
+        db.acquire(function (err, con) {
+          con.query('select * from resources where orgID = ? order by desc', [decoded.org_id], function (err, result) {
+            con.release();
+            if (err) res.status(500).send(err.code);
+            res.status(200).json(result);
+          });
+        });
+      } else {
+        res.status(500).send({ error: 'invalid entry!' });
+      }
+    });
+  }
+
+    this.createUser = function (req, res) {
+      var orgID = req.orgid;
+      var uName = req.username;
+      var textPSW = req.password;
+      var fName = req.fname;
+      var lName = req.lname;
+      var email = req.email;
+      // Crypto Hash+Salt
+      bcrypt.genSalt(10, function (err, salt) {
+        bcrypt.hash(textPSW, salt, function (err, hash) {
+          // store hash in db
           db.acquire(function (err, con) {
-            con.query('update users set email = ? where userid = ?', [qParam.newEmail, qParam.userid], function (err, result) {
+            con.query('insert into users (orgID,userName,password,firstName,lastName,email) values(?,?,?,?,?,?)', [orgID, uName, hash, fName, lName, email], function (err, results) {
               con.release();
-              if (err) {
-                res.send({ status: 1, message: err.code });
+              if (err && err.code === 'ER_DUP_ENTRY') {
+                res.status(500).send(err.code);
+              } else if (err && err.code !== 'ER_DUP_ENTRY') {
+                res.status(500).send(err.code);
               } else {
-                res.send({ status: 0, message: 'Email updated!' });
+                res.status(200).send('Success! user has been created!');
               }
             });
           });
-          //  end the next
-        }
-      }
-    });
-  };
+        });
+      });
+    };
 
-  this.deleteUser = function (req, res) {
-    db.acquire(function (err, con) {
-      con.query('delete from users where orgID = ? AND userid = ?', [req.orgid, req.userid], function (err, result) {
-        con.release();
+    this.updateEmail = function (qParam, res) {
+      jwt.verify(qParam.userToken, jwtSecret, function (err, decoded) {
         if (err) {
-          res.send({ status: 1, message: err.code });
-        } else {
-          res.send({ status: 0, message: 'Deletion successful' });
+          res.status(500).json({ error: err.name, desc: err.message });
+          console.log({ error: err.name, desc: err.message });
+          if (!decoded) {
+            res.redirect('/auth');
+          }
+          if (decoded) {
+            db.acquire(function (err, con) {
+              con.query('update users set email = ? where userid = ?', [qParam.newEmail, qParam.userid], function (err, result) {
+                con.release();
+                if (err) {
+                  res.send({ status: 1, message: err.code });
+                } else {
+                  res.send({ status: 0, message: 'Email updated!' });
+                }
+              });
+            });
+          };
         }
       });
-    });
-  };
+    };
+
+    this.deleteUser = function (req, res) {
+      jwt.verify(qParam.userToken, jwtSecret, function (err, decoded) {
+        if (err) {
+          res.status(500).json({ error: err.name, desc: err.message });
+          console.log({ error: err.name, desc: err.message });
+          if (!decoded) {
+            res.redirect('/auth');
+          }
+          if (decoded) {
+            db.acquire(function (err, con) {
+              con.query('delete from users where orgID = ? AND userid = ?', [decoded.org_id, req.userid], function (err, result) {
+                con.release();
+                if (err) {
+                  res.send({ status: 1, message: err.code });
+                } else {
+                  res.send({ status: 0, message: 'Deletion successful' });
+                }
+              });
+            });
+          };
+        }
+      });
+    }
+  
 
 }
 module.exports = new Appts();
