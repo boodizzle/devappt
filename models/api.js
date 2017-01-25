@@ -50,7 +50,7 @@ function Appts() {
       if (decoded) {
         if (req.hasOwnProperty('res_id') && req.res_id.length > 0 && isFinite(req.res_id)) {
           db.acquire(function (err, con) {
-            con.query('select * from appts where resource_id = (select emrID from resources where resID = ? and orgID = ? and active = 1) order by appt_date, begintime', [req.res_id, decoded.org_id], function (err, result) {
+            con.query('select * from appts where resource_id = (select emrID from resources where resID = ? and orgID = ? and active = 1) and orgID = ? begintime', [req.res_id, decoded.org_id, decoded.org_id], function (err, result) {
               con.release();
               if (err) res.status(500).send(err.code);
               res.status(200).json(result);
