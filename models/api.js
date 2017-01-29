@@ -48,11 +48,11 @@ function Appts() {
         res.redirect('/auth');
       }
       if (decoded) {
-        if (req.hasOwnProperty('res_id') && req.res_id.length > 0 && isFinite(req.res_id)) {
+        if (req.hasOwnProperty('res_id') && isFinite(req.res_id)) {
           db.acquire(function (err, con) {
-            con.query('select * from appts where resource_id = (select emrID from resources where resID = ? and orgID = ? and active = 1) and orgID = ? begintime', [req.res_id, decoded.org_id, decoded.org_id], function (err, result) {
+            con.query('select * from appts inner join resources on appts.resource_Id = resources.emrID where resources.resID = ? and appts.orgID = ? order by begintime', [req.res_id, decoded.org_id], function (err, result) {
               con.release();
-              if (err) res.status(500).send(err.code);
+              if (err) res.status(500).send({cause: 'SQL', error: err, err_desc: err.code}); console.log(result);
               res.status(200).json(result);
             });
           });
@@ -73,7 +73,7 @@ function Appts() {
       }
       if (decoded) {
         db.acquire(function (err, con) {
-          con.query('select resID, orgID, description, firstName, lastName, active from resources where orgID = ? order by lastName', [decoded.org_id], function (err, result) {
+          con.query('select resID, emrID,orgID, description, firstName, lastName, active from resources where orgID = ? order by lastName', [decoded.org_id], function (err, result) {
             con.release();
             if (err) res.status(500).send(err.code);
             res.status(200).json(result);
