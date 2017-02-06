@@ -7,8 +7,6 @@ module.exports = {
       api.authenticate(req.body, res);
     });
 
-
-
     app.get('/auth/resource', function (req, res) {
       api.getResources(req.query, res);
     });

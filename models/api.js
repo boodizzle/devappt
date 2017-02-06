@@ -52,7 +52,7 @@ function Appts() {
           db.acquire(function (err, con) {
             con.query('select * from appts inner join resources on appts.resource_Id = resources.emrID where resources.resID = ? and appts.orgID = ? order by begintime', [req.res_id, decoded.org_id], function (err, result) {
               con.release();
-              if (err) res.status(500).send({cause: 'SQL', error: err, err_desc: err.code}); console.log(result);
+              if (err) res.status(500).send({ cause: 'SQL', error: err, err_desc: err.code });
               res.status(200).json(result);
             });
           });
@@ -134,8 +134,8 @@ function Appts() {
     });
   };
 
-  this.updateEmail = function (qParam, res) {
-    jwt.verify(qParam.userToken, jwtSecret, function (err, decoded) {
+  this.updateEmail = function (req, res) {
+    jwt.verify(req.userToken, jwtSecret, function (err, decoded) {
       if (err) {
         res.status(500).json({ error: err.name, desc: err.message });
         console.log({ error: err.name, desc: err.message });
@@ -144,7 +144,7 @@ function Appts() {
         }
         if (decoded) {
           db.acquire(function (err, con) {
-            con.query('update users set email = ?, modified = NOW() where userid = ?', [qParam.newEmail, decoded.user_id], function (err, result) {
+            con.query('update users set email = ?, modified = NOW() where userid = ?', [req.newEmail, decoded.user_id], function (err, result) {
               con.release();
               if (err) {
                 res.send({ status: 1, message: err.code });
@@ -159,7 +159,7 @@ function Appts() {
   };
 
   this.deleteUser = function (req, res) {
-    jwt.verify(qParam.userToken, jwtSecret, function (err, decoded) {
+    jwt.verify(req.userToken, jwtSecret, function (err, decoded) {
       if (err) {
         res.status(500).json({ error: err.name, desc: err.message });
         console.log({ error: err.name, desc: err.message });

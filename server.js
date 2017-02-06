@@ -3,9 +3,13 @@ var bodyparser = require('body-parser');
 var app = express();
 var PORT = process.env.PORT || 3000;
 var morgan = require('morgan');
+var cors = require('cors');
 
 
 // use morgan to log requests to the console
+app.use(cors()); 
+
+
 app.use(morgan('dev'));
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
