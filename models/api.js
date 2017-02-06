@@ -48,7 +48,7 @@ function Appts() {
         res.redirect('/auth');
       }
       if (decoded) {
-        if (req.hasOwnProperty('res_id') && isFinite(req.res_id)) {
+        if (req.hasOwnProperty('res_id') && req.res_id.length < 10 && isFinite(req.res_id)) {
           db.acquire(function (err, con) {
             con.query('select * from appts inner join resources on appts.resource_Id = resources.emrID where resources.resID = ? and appts.orgID = ? order by begintime', [req.res_id, decoded.org_id], function (err, result) {
               con.release();
