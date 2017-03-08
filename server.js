@@ -4,11 +4,10 @@ var app = express();
 var PORT = process.env.PORT || 3000;
 var morgan = require('morgan');
 var cors = require('cors');
-
+var nodemon = require('nodemon');
 
 // use morgan to log requests to the console
-app.use(cors()); 
-
+app.use(cors());
 
 app.use(morgan('dev'));
 app.use(bodyparser.urlencoded({ extended: true }));
